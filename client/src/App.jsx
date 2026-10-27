@@ -66,11 +66,12 @@ function Browse() {
 function CourseDetail() {
   const { slug } = useParams();
   const [course, setCourse] = useState(fallbackCourses.find(c => c.slug === slug));
+  const [lessons, setLessons] = useState([]);
   const [error, setError] = useState("");
   const [enrolling, setEnrolling] = useState(false);
   const [enrollMessage, setEnrollMessage] = useState("");
   const navigate = useNavigate();
-  useEffect(() => { let active = true; api.get(`/courses/${slug}`).then(r => { if (active) setCourse(r.data.course); }).catch(() => { if (active && !fallbackCourses.some(c => c.slug === slug)) setError("This course could not be found."); }); return () => { active = false; }; }, [slug]);
+  useEffect(() => { let active = true; api.get(`/courses/${slug}`).then(r => { if (active) { setCourse(r.data.course); setLessons(Array.isArray(r.data.lessons) ? r.data.lessons : []); } }).catch(() => { if (active && !fallbackCourses.some(c => c.slug === slug)) setError("This course could not be found."); }); return () => { active = false; }; }, [slug]);
   async function enroll() {
     const token = localStorage.getItem("eduguru-token");
     if (!token) { navigate("/auth"); return; }
@@ -82,7 +83,7 @@ function CourseDetail() {
   }
   if (error) return <main className="empty-state"><h2>{error}</h2><Link className="button button-primary" to="/browse">Browse courses</Link></main>;
   if (!course) return <main className="empty-state">Loading course…</main>;
-  return <main className="detail-page"><Link className="text-link" to="/browse">← Back to courses</Link><div className="detail-layout"><div><div className="course-art detail-art"><img className="course-image" src={courseImage(course)} alt={`${course.title} learning cover`} onError={e => { e.currentTarget.style.display = "none"; }}/><span className="detail-image-label"><GraduationCap size={22}/> EduGuru learning path</span></div><div className="eyebrow">{course.category}</div><h1>{course.title}</h1><p>{course.description}</p><h2>About this course</h2><p>Learn with a structured, self-paced learning experience. Follow the lessons at a pace that works for you and return whenever you need to review.</p></div><aside className="enroll-card"><span className="course-category">COURSE ACCESS</span><h2>{Number(course.price) === 0 ? "Free" : `LKR ${Number(course.price).toLocaleString()}`}</h2><p><PlayCircle size={17}/> {course.lessonsCount || 0} lessons</p><p><UserRound size={17}/> {course.instructor || "EduGuru Learning Team"}</p><button className="button button-primary full-button" type="button" onClick={enroll} disabled={enrolling}>{enrolling ? "Enrolling…" : "Enroll in this course"} <ArrowRight size={17}/></button>{enrollMessage && <p role="status" className="enrollment-message">{enrollMessage}</p>}</aside></div></main>;
+  return <main className="detail-page"><Link className="text-link" to="/browse">← Back to courses</Link><div className="detail-layout"><div><div className="course-art detail-art"><img className="course-image" src={courseImage(course)} alt={`${course.title} learning cover`} onError={e => { e.currentTarget.style.display = "none"; }}/><span className="detail-image-label"><GraduationCap size={22}/> EduGuru learning path</span></div><div className="eyebrow">{course.category}</div><h1>{course.title}</h1><p>{course.description}</p><h2>About this course</h2><p>Learn with a structured, self-paced learning experience. Follow the lessons at a pace that works for you and return whenever you need to review.</p><section className="section lesson-outline"><h2>Course lessons</h2>{lessons.length ? <ol>{lessons.map(lesson => <li key={lesson._id}><Link to={localStorage.getItem("eduguru-token") ? `/lesson/${lesson._id}` : "/auth"}><span>{lesson.order}. {lesson.title}</span><span>{lesson.durationMinutes ? lesson.durationMinutes + " min" : "Lesson"} <ArrowRight size={15}/></span></Link>{lesson.description && <p>{lesson.description}</p>}</li>)}</ol> : <p>Lessons will appear here when the course content is published.</p>}</section></div><aside className="enroll-card"><span className="course-category">COURSE ACCESS</span><h2>{Number(course.price) === 0 ? "Free" : `LKR ${Number(course.price).toLocaleString()}`}</h2><p><PlayCircle size={17}/> {course.lessonsCount || 0} lessons</p><p><UserRound size={17}/> {course.instructor || "EduGuru Learning Team"}</p><button className="button button-primary full-button" type="button" onClick={enroll} disabled={enrolling}>{enrolling ? "Enrolling…" : "Enroll in this course"} <ArrowRight size={17}/></button>{enrollMessage && <p role="status" className="enrollment-message">{enrollMessage}</p>}</aside></div></main>;
 }
 function Auth() {
   const [mode, setMode] = useState("login"), [name, setName] = useState(""), [email, setEmail] = useState(""), [password, setPassword] = useState(""), [age, setAge] = useState(""), [gender, setGender] = useState(""), [step, setStep] = useState(0), [error, setError] = useState(""), [busy, setBusy] = useState(false); const navigate = useNavigate();
@@ -124,6 +125,45 @@ function Profile() {
 }
 function MenuPage() { return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">EDUGURU</div><h1>Explore EduGuru</h1><p>Everything you need to continue your learning journey.</p></div><div className="course-grid menu-grid">{[[HomeIcon,"Home","/home","https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=85"],[BookOpen,"Browse courses","/browse","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Info,"About EduGuru","/about","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[CircleHelp,"Help & Support","/help-support","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Mail,"Contact","/contact","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[Download,"Download app","/download-app","https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=85"]].map(([Icon,label,to,image])=><Link className="course-card menu-card" to={to} key={to}><div className="menu-art"><img src={image} alt="" loading="lazy"/><span className="menu-art-icon"><Icon size={24}/></span></div><div className="course-content"><span className="note-icon"><Icon/></span><h3>{label}</h3><p>Explore {label.toLowerCase()} on EduGuru.</p><span className="text-link">Open page <ArrowRight size={16}/></span></div></Link>)}</div></main>; }
 function InfoPage({ path }) { const info = pageInfo[path] || pageInfo["/about"]; const Icon = info.icon; const [sent, setSent] = useState(false); const [sending, setSending] = useState(false); const [contactError, setContactError] = useState(""); async function submitContact(e) { e.preventDefault(); setSending(true); setContactError(""); setSent(false); const form = e.currentTarget; const fields = new FormData(form); try { await api.post("/contact", { name: fields.get("name"), email: fields.get("email"), message: fields.get("message") }); setSent(true); form.reset(); } catch (err) { setContactError(err.response?.data?.message || "We could not send your message. Please try again later."); } finally { setSending(false); } } return <main className="browse-page info-page"><div className="info-cover"><img src={path === "/about" ? "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=85" : path === "/contact" || path === "/help-support" ? "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85" : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=85"} alt={info.title} loading="lazy"/><div className="info-cover-caption"><span>{info.intro}</span><strong>{info.title}</strong></div></div><div className="auth-card info-card"><div className="auth-icon"><Icon size={28}/></div><div className="eyebrow">{info.intro}</div><h1>{info.title}</h1><p>{info.body}</p>{path === "/contact" && <form onSubmit={submitContact}><label>Your name<input name="name" required minLength="2" aria-label="Your name" placeholder="Your name"/></label><label>Email address<input name="email" required type="email" aria-label="Email address" placeholder="you@example.com"/></label><label>Message<textarea name="message" required minLength="10" maxLength="5000" aria-label="Message" placeholder="How can we help?"/></label>{contactError && <p className="form-error" role="alert">{contactError}</p>}<button className="button button-primary full-button" type="submit" disabled={sending}>{sending ? "Sending…" : "Send message"} <ArrowRight size={16}/></button>{sent && <p role="status">Thanks — your message was sent to EduGuru support.</p>}</form>}{path === "/help-support" && <div className="support-links"><Link to="/contact">Contact support <ArrowRight size={16}/></Link><Link to="/browse">Browse courses <ArrowRight size={16}/></Link></div>}{path === "/resources" && <Link className="button button-primary" to="/browse">Explore courses <ArrowRight size={16}/></Link>}{path === "/download-app" && <Link className="button button-primary" to="/browse">Continue on the web <ArrowRight size={16}/></Link>}</div></main>; }
+
+
+function LessonPage() {
+  const { lessonId } = useParams();
+  const navigate = useNavigate();
+  const [lesson, setLesson] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    let active = true;
+    if (!localStorage.getItem("eduguru-token")) { navigate("/auth", { replace: true }); return () => { active = false; }; }
+    Promise.all([api.get("/lessons/" + lessonId), api.get("/enrollments")]).then(([lessonResult, enrollmentResult]) => {
+      if (!active) return;
+      const foundLesson = lessonResult.data.lesson;
+      setLesson(foundLesson);
+      const foundEnrollment = (enrollmentResult.data.enrollments || []).find(item => String(item.course?._id || item.course) === String(foundLesson.course?._id || foundLesson.course));
+      setEnrollment(foundEnrollment || null);
+    }).catch(err => { if (active) setError(err.response?.data?.message || "Lesson could not be loaded."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [lessonId, navigate]);
+  async function completeLesson() {
+    if (!enrollment) return;
+    setSaving(true); setMessage(""); setError("");
+    try {
+      const { data } = await api.post("/enrollments/" + enrollment._id + "/lessons/" + lessonId + "/complete");
+      setEnrollment(current => ({ ...current, progress: data.enrollment.progress, status: data.enrollment.status }));
+      setMessage("Lesson marked complete. Course progress: " + data.enrollment.progress + "%.");
+    } catch (err) { setError(err.response?.data?.message || "Could not save lesson progress."); }
+    finally { setSaving(false); }
+  }
+  if (loading) return <main className="empty-state" role="status">Loading lesson…</main>;
+  if (error && !lesson) return <main className="empty-state"><h2>{error}</h2><Link className="button button-primary" to="/browse">Browse courses</Link></main>;
+  if (!lesson) return null;
+  return <main className="browse-page lesson-page"><Link className="text-link" to={"/course/" + (lesson.course?.slug || "")}>← Back to course</Link><div className="eyebrow">LESSON {lesson.order}</div><h1>{lesson.title}</h1>{lesson.description && <p>{lesson.description}</p>}{lesson.videoUrl && <p><a href={lesson.videoUrl} target="_blank" rel="noreferrer">Open lesson video <ArrowRight size={16}/></a></p>}<article className="auth-card lesson-content">{lesson.content ? <div style={{ whiteSpace: "pre-wrap" }}>{lesson.content}</div> : <p>The instructor has not added lesson notes yet.</p>}{!enrollment ? <p>Enroll in this course to save your lesson progress.</p> : <button className="button button-primary" onClick={completeLesson} disabled={saving}>{saving ? "Saving…" : "Mark lesson complete"}</button>}{message && <p role="status">{message}</p>}{error && <p className="form-error" role="alert">{error}</p>}</article></main>;
+}
 
 function AdminPage() {
   const [courses, setCourses] = useState([]);
@@ -188,5 +228,5 @@ function Footer() { return <footer className="footer"><Link to="/" className="br
 export default function App() {
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/admin" element={<AdminPage/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
+  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/lesson/:lessonId" element={<LessonPage/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/admin" element={<AdminPage/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
 }
