@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import AppShell from "./AppShell.jsx";
 import "./styles.css";
+import "./parity-refinements.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode><BrowserRouter><AppShell><App /></AppShell></BrowserRouter></React.StrictMode>

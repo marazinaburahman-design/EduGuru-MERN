@@ -1,0 +1,40 @@
+/* EduGuru parity refinements: keyboard visibility, reduced motion and balanced desktop course grid. */
+.main-column a:focus-visible,
+.left-sidebar a:focus-visible,
+.right-sidebar a:focus-visible,
+.mobile-bottom-nav a:focus-visible,
+.main-column button:focus-visible,
+.main-column input:focus-visible,
+.main-column select:focus-visible,
+.main-column textarea:focus-visible {
+  outline: 3px solid #ffb52b;
+  outline-offset: 3px;
+}
+.sidebar-nav-item,
+.quick-tile,
+.more-grid > a,
+.wallet-card,
+.mobile-bottom-item {
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.sidebar-nav-item:hover,
+.more-grid > a:hover { transform: translateY(-1px); }
+.quick-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 18px #34124d30;
+}
+.main-column .course-grid { align-items: stretch; }
+.main-column .course-card { min-height: 100%; }
+.main-column .course-image { background: #eee5ff; }
+@media (min-width: 1101px) {
+  .main-column .course-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .main-column .course-art { height: 118px; min-height: 118px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
