@@ -50,3 +50,6 @@
 .menu-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#183d3377,transparent 70%)}
 .menu-art-icon{position:absolute;z-index:1;bottom:14px;left:16px;width:43px;height:43px;display:grid;place-items:center;border-radius:12px;background:#fffdf0e8;color:#204e3f}
 @media(max-width:640px){.hero-photo{inset:12px 5px;width:calc(100% - 10px);height:calc(100% - 24px)}.hero-visual:after{inset:12px 5px}.info-cover{height:170px}.menu-art{height:155px}.detail-art{height:220px}}
+
+/* Keep the new image banner stacked above its page content */
+.info-page{flex-direction:column;align-items:center;width:100%}.info-cover,.info-card{width:min(100%,700px)}
