@@ -57,34 +57,29 @@ function Home() {
   return <main className="reference-home"><section className="reference-home-hero"><div className="reference-hero-orb"/><div className="reference-hero-title">What will you<br/>learn today?</div><form className="reference-home-search" onSubmit={e=>{e.preventDefault();window.location.href="/browse?search="+encodeURIComponent(search)}}><Search size={17}/><input placeholder="Search courses, teachers..." value={search} onChange={e=>setSearch(e.target.value)}/><button type="submit"><Search size={15}/> Search</button></form></section><div className="reference-home-tabs">{["For You","Popular","🔥 Fire","♜ Institute","▦"].map(label=><button className={tab===label?"selected":""} onClick={()=>setTab(label)} key={label}>{label}</button>)}</div><section className="reference-feature-row"><Link to="/browse" className="reference-featured-course"><img src="https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=900&q=85" alt="Graphic design course"/><span>GRAPHIC DESIGN<br/><b>COURSE</b></span><strong>LIMITED SEATS LEFT</strong></Link><div className="reference-feature-stacks"><Link to="/browse" className="reference-feature-stack guru"><span><BookOpen size={29}/></span><div><strong>Guru Tests</strong><small>Mock exams &amp; practice tests</small></div><ChevronRight size={16}/></Link><Link to="/browse" className="reference-feature-stack school"><span><GraduationCap size={30}/></span><div><strong>My School</strong><small>Classes &amp; schedules</small></div><ChevronRight size={16}/></Link></div></section><section className="reference-popular"><div className="reference-popular-heading"><h2>{tab==="Popular"?"Popular Courses":tab}</h2><Link to="/browse">See all</Link></div><div className="reference-course-grid">{courses.slice(0,12).map((course,index)=><CourseCard key={course.slug||course._id||course.title} course={course} referenceMode index={index}/>)}</div></section></main>;
 }
 function Browse() {
-  const [search, setSearch] = useState("");
-  const [query, setQuery] = useState("");
-  const [free, setFree] = useState(false);
-  const [category, setCategory] = useState("");
-  const [page, setPage] = useState(1);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [remoteCourses, setRemoteCourses] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [loading, setLoading] = useState(true);
-  const [apiError, setApiError] = useState(false);
-  useEffect(() => {
-    let active = true; setLoading(true); setApiError(false);
-    api.get("/courses", { params: { search: query, free: free ? "true" : "", category, page, limit: 9 } })
-      .then(r => { if (!active) return; setRemoteCourses(Array.isArray(r.data.courses) ? r.data.courses : []); setCategories(Array.isArray(r.data.categories) ? r.data.categories : []); setPagination(r.data.pagination || { page: 1, pages: 1, total: (r.data.courses || []).length }); })
-      .catch(() => { if (active) { setRemoteCourses(null); setApiError(true); } })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [query, free, category, page]);
-  const courses = useMemo(() => (remoteCourses !== null ? remoteCourses : fallbackCourses).filter(c => (!query || [c.title, c.description, c.instructor, c.category].join(" ").toLowerCase().includes(query.toLowerCase()))).filter(c => (!category || c.category === category)).filter(c => (!free || Number(c.price) === 0)), [remoteCourses, query, free, category]);
-  function resetFilters() { setSearch(""); setQuery(""); setFree(false); setCategory(""); setPage(1); }
-  return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">FIND YOUR NEXT COURSE</div><h1>Explore the world of learning.</h1><p>Search courses, discover new interests, and take your next step.</p></div>
-    <form className="search-bar" onSubmit={e => { e.preventDefault(); setQuery(search.trim()); setPage(1); }}><Search aria-hidden="true"/><input aria-label="Search courses, people" placeholder="Search courses, people..." value={search} onChange={e => setSearch(e.target.value)}/><button className="button button-primary" type="submit">Search</button></form>
-    <div className="filter-row"><span><SlidersHorizontal size={17}/> Refine your search</span><button className="button button-quiet filter-button" type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen(v => !v)}>Filters</button>{filterOpen && <div className="course-filters"><label>Category<select aria-label="Filter by category" value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}><option value="">All categories</option>{(categories.length ? categories : [...new Set(fallbackCourses.map(c => c.category))]).map(item => <option key={item} value={item}>{item}</option>)}</select></label><label className="free-toggle"><input type="checkbox" checked={free} onChange={e => { setFree(e.target.checked); setPage(1); }}/> Free only</label></div>}<span className="result-count">{remoteCourses !== null ? pagination.total : courses.length} courses</span></div>
-    {query && <p className="query-label">Results for "{query}"</p>}{apiError && <p className="form-error" role="status">Live course data is temporarily unavailable. Showing the available demo catalogue.</p>}
-    {loading ? <div className="course-grid" aria-label="Loading courses" role="status">{[1,2,3,4,5,6].map(n => <div className="course-card course-skeleton" key={n}><div className="skeleton-art"/><div className="course-content"><div className="skeleton-line"/><div className="skeleton-line short"/><div className="skeleton-line"/></div></div>)}</div> : courses.length ? <div className="course-grid">{courses.map(c => <CourseCard key={c.slug || c._id || c.title} course={c}/>)}</div> : <div className="empty-state"><BookOpen size={35}/><h2>No Courses Found</h2><p>Try another search or turn off a filter.</p><button className="button button-quiet" onClick={resetFilters}>Clear filters</button></div>}
-    {!loading && remoteCourses !== null && pagination.pages > 1 && <nav className="pagination" aria-label="Course pages"><button className="button button-quiet" disabled={page <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}>Previous</button><span>Page {pagination.page} of {pagination.pages}</span><button className="button button-quiet" disabled={page >= pagination.pages} onClick={() => setPage(value => Math.min(pagination.pages, value + 1))}>Next</button></nav>}
-  </main>;
+  const params = new URLSearchParams(window.location.search);
+  const [search,setSearch]=useState(params.get("search")||"");
+  const [query,setQuery]=useState(params.get("search")||"");
+  const [free,setFree]=useState(false);
+  const [category,setCategory]=useState("");
+  const [page,setPage]=useState(1);
+  const [filterOpen,setFilterOpen]=useState(false);
+  const [usersTab,setUsersTab]=useState(false);
+  const [courses,setCourses]=useState([]);
+  const [categories,setCategories]=useState([]);
+  const [pagination,setPagination]=useState({page:1,pages:1,total:0});
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState("");
+  useEffect(()=>{
+    let active=true;setLoading(true);setError("");
+    api.get("/courses",{params:{search:query,free:free?"true":"",category,page,limit:12}})
+      .then(({data})=>{if(!active)return;setCourses(Array.isArray(data.courses)?data.courses:[]);setCategories(Array.isArray(data.categories)?data.categories:[]);setPagination(data.pagination||{page:1,pages:1,total:(data.courses||[]).length});})
+      .catch(()=>{if(!active)return;const local=fallbackCourses.filter(c=>(!query||[c.title,c.description,c.instructor,c.category].join(" ").toLowerCase().includes(query.toLowerCase()))&&(!category||c.category===category)&&(!free||Number(c.price)===0);setCourses(local);setPagination({page:1,pages:1,total:local.length});setError("Showing available courses while the live catalogue reconnects.");})
+      .finally(()=>{if(active)setLoading(false);});
+    return ()=>{active=false;};
+  },[query,free,category,page]);
+  function reset(){setSearch("");setQuery("");setFree(false);setCategory("");setPage(1);}
+  return <main className="reference-browse"><section className="reference-browse-hero"><div className="browse-eyebrow">EDUGURU</div><h1>Discover &amp; Learn<br/>Something New</h1><form className="reference-home-search" onSubmit={e=>{e.preventDefault();setQuery(search.trim());setPage(1);}}><Search size={17}/><input placeholder="Search courses, people..." value={search} onChange={e=>setSearch(e.target.value)}/><button type="submit"><Search size={15}/> Search</button></form></section><div className="reference-browse-tabs"><button className={!usersTab?"selected":""} onClick={()=>setUsersTab(false)}><BookOpen size={16}/> Courses</button><button className={usersTab?"selected":""} onClick={()=>setUsersTab(true)}><UserRound size={16}/> Users</button></div>{usersTab?<div className="reference-users-empty"><UserRound size={30}/><h2>Discover EduGuru learners</h2><p>Teacher and learner discovery will appear here.</p><button className="button button-primary" onClick={()=>setUsersTab(false)}>Browse courses</button></div>:<><div className="reference-browse-filters"><button className={!category?"selected":""} onClick={()=>{setCategory("");setPage(1);}}><HomeIcon size={13}/> All</button><div className="filter-wrap"><button onClick={()=>setFilterOpen(v=>!v)} aria-expanded={filterOpen}><LayoutGrid size={13}/> Categories <span>⌄</span></button>{filterOpen&&<div className="filter-popover"><button onClick={()=>{setCategory("");setPage(1);setFilterOpen(false);}}>All categories</button>{(categories.length?categories:[...new Set(fallbackCourses.map(c=>c.category))]).map(item=><button key={item} onClick={()=>{setCategory(item);setPage(1);setFilterOpen(false);}}>{item}</button>)}</div>}</div><button className={free?"selected":""} onClick={()=>{setFree(v=>!v);setPage(1);}}><SlidersHorizontal size={13}/> Filter <span>⌄</span></button><span className="reference-course-count">{pagination.total||courses.length}+ courses</span></div>{error&&<p className="reference-browse-error" role="status">{error}</p>}<section className="reference-browse-results"><div className="reference-browse-heading"><h2>{query?("Results for “"+query+"”"):"All Courses"}</h2><span>{pagination.total||courses.length}+ courses</span></div>{loading?<div className="reference-course-grid">{[1,2,3,4,5,6,7,8].map(n=><div className="reference-card-skeleton" key={n}/>)}</div>:courses.length?<div className="reference-course-grid">{courses.map((course,index)=><CourseCard key={course.slug||course._id||course.title} course={course} referenceMode index={index}/>)}</div>:<div className="reference-users-empty"><BookOpen size={30}/><h2>No courses found</h2><p>Try another search or clear your filters.</p><button className="button button-primary" onClick={reset}>Clear filters</button></div>}{pagination.pages>1&&<div className="pagination"><button className="button button-quiet" disabled={page<=1} onClick={()=>setPage(v=>Math.max(1,v-1))}>Previous</button><span>Page {pagination.page} of {pagination.pages}</span><button className="button button-quiet" disabled={page>=pagination.pages} onClick={()=>setPage(v=>Math.min(pagination.pages,v+1))}>Next</button></div>}</section></>}</main>;
 }
 
 function CourseDetail() {
