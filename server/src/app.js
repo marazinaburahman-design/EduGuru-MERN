@@ -158,6 +158,12 @@ app.post("/api/enrollments/:id/lessons/:lessonId/complete", requireAuth, async (
   } catch (error) { return next(error); }
 });
 
+app.get("/api/admin/courses", requireAuth, requireAdmin, async (_req, res, next) => {
+  try {
+    const courses = await Course.find({}).sort({ createdAt: -1 }).lean();
+    return res.json({ courses });
+  } catch (error) { return next(error); }
+});
 app.post("/api/admin/courses", requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const title = String(req.body.title || "").trim();
