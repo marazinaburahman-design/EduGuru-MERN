@@ -53,3 +53,30 @@
 
 /* Keep the new image banner stacked above its page content */
 .info-page{flex-direction:column;align-items:center;width:100%}.info-cover,.info-card{width:min(100%,700px)}
+
+/* Module: course discovery, admin and lesson learning states */
+.course-filters { display:flex; align-items:end; flex-wrap:wrap; gap:1rem; padding:1rem; border:1px solid #e5e7eb; border-radius:1rem; }
+.course-filters label { display:flex; flex-direction:column; gap:.4rem; }
+.course-filters select { min-width:12rem; padding:.7rem; border:1px solid #d1d5db; border-radius:.6rem; background:white; }
+.course-skeleton { overflow:hidden; }
+.skeleton-art,.skeleton-line { background:linear-gradient(90deg,#f0f1f3 25%,#fafafa 45%,#f0f1f3 65%); background-size:300% 100%; animation:eduguru-shimmer 1.5s infinite; border-radius:.5rem; }
+.skeleton-art { height:12rem; }
+.skeleton-line { height:.8rem; margin:.9rem 0; }
+.skeleton-line.short { width:55%; }
+.pagination { display:flex; align-items:center; justify-content:center; gap:1rem; padding:2rem 0; }
+.pagination button:disabled { opacity:.45; cursor:not-allowed; }
+.lesson-outline ol { list-style:none; padding:0; margin:1rem 0; }
+.lesson-outline li { padding:1rem 0; border-bottom:1px solid #e5e7eb; }
+.lesson-outline li a { display:flex; justify-content:space-between; gap:1rem; align-items:center; text-decoration:none; font-weight:600; }
+.lesson-outline li p { margin:.5rem 0 0; }
+.lesson-content { max-width:56rem; margin:2rem auto; }
+.lesson-content button { margin-top:1.5rem; }
+.admin-form-card { max-width:56rem; margin:1rem auto 2rem; }
+.admin-form-card form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.admin-form-card form label { display:flex; flex-direction:column; gap:.4rem; }
+.admin-form-card form label:nth-child(3),.admin-form-card form label:nth-child(8),.admin-form-card form button { grid-column:1 / -1; }
+.admin-form-card input:not([type=checkbox]),.admin-form-card textarea,.admin-form-card select { width:100%; padding:.75rem; border:1px solid #d1d5db; border-radius:.65rem; }
+.admin-form-card textarea { min-height:7rem; }
+.admin-form-card form label:has(input[type=checkbox]) { flex-direction:row; align-items:center; }
+@keyframes eduguru-shimmer { 0% { background-position:100% 0; } 100% { background-position:0 0; } }
+@media(max-width:640px) { .admin-form-card form { grid-template-columns:1fr; } .admin-form-card form label,.admin-form-card form button { grid-column:1; } .pagination { gap:.5rem; } }
