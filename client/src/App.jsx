@@ -74,7 +74,7 @@ function Browse() {
     let active=true;setLoading(true);setError("");
     api.get("/courses",{params:{search:query,free:free?"true":"",category,page,limit:12}})
       .then(({data})=>{if(!active)return;setCourses(Array.isArray(data.courses)?data.courses:[]);setCategories(Array.isArray(data.categories)?data.categories:[]);setPagination(data.pagination||{page:1,pages:1,total:(data.courses||[]).length});})
-      .catch(()=>{if(!active)return;const local=fallbackCourses.filter(c=>(!query||[c.title,c.description,c.instructor,c.category].join(" ").toLowerCase().includes(query.toLowerCase()))&&(!category||c.category===category)&&(!free||Number(c.price)===0);setCourses(local);setPagination({page:1,pages:1,total:local.length});setError("Showing available courses while the live catalogue reconnects.");})
+      .catch(()=>{if(!active)return;const local=fallbackCourses.filter(c=>(!query||[c.title,c.description,c.instructor,c.category].join(" ").toLowerCase().includes(query.toLowerCase()))&&(!category||c.category===category)&&(!free||Number(c.price)===0));setCourses(local);setPagination({page:1,pages:1,total:local.length});setError("Showing available courses while the live catalogue reconnects.");})
       .finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;};
   },[query,free,category,page]);
