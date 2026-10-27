@@ -3,7 +3,12 @@ import { Link, Route, Routes, useLocation, useNavigate, useParams } from "react-
 import { BookOpen, Search, SlidersHorizontal, GraduationCap, ArrowRight, Menu, X, UserRound, PlayCircle, Home as HomeIcon, CircleHelp, Mail, Download, FileText, ShieldCheck, Info, LogOut } from "lucide-react";
 import axios from "axios";
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api" });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://eduguru-mern-api.vercel.app/api" : "http://localhost:5000/api") });
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem("eduguru-token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 const fallbackCourses = [
   { title: "Complete Quran Learning Course", slug: "complete-quran-learning-course", description: "A structured learning path with guided lessons and practice.", instructor: "EduGuru Learning Team", category: "Religious Studies", level: "Beginner", price: 0, lessonsCount: 24 },
   { title: "Foundations of Web Development", slug: "foundations-of-web-development", description: "Learn the core concepts behind modern websites and web applications.", instructor: "EduGuru Learning Team", category: "Technology", level: "Beginner", price: 0, lessonsCount: 18 },
@@ -37,7 +42,7 @@ const categoryImages = {
 };
 function courseImage(course) {
   const key = String(course.category || "").toLowerCase();
-  return course.image || categoryImages[key] || categoryImages.technology;
+  return course.image || course.imageUrl || categoryImages[key] || categoryImages.technology;
 }
 function CourseCard({ course }) {
   const slug = course.slug || String(course.title || "course").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -55,7 +60,7 @@ function Home() {
 function Browse() {
   const [search, setSearch] = useState(""), [query, setQuery] = useState(""), [free, setFree] = useState(false), [filterOpen, setFilterOpen] = useState(false), [remoteCourses, setRemoteCourses] = useState(null), [loading, setLoading] = useState(true);
   useEffect(() => { let active = true; setLoading(true); api.get("/courses", { params: { search: query, free: free ? "true" : "" } }).then(r => { if (active && Array.isArray(r.data.courses)) setRemoteCourses(r.data.courses); }).catch(() => { if (active) setRemoteCourses(null); }).finally(() => active && setLoading(false)); return () => { active = false; }; }, [query, free]);
-  const courses = useMemo(() => (remoteCourses?.length ? remoteCourses : fallbackCourses).filter(c => (!query || [c.title, c.description, c.instructor, c.category].join(" ").toLowerCase().includes(query.toLowerCase())) && (!free || Number(c.price) === 0)), [remoteCourses, query, free]);
+  const courses = useMemo(() => (remoteCourses !== null ? remoteCourses : fallbackCourses).filter(c => (!query || [c.title, c.description, c.instructor, c.category].join(" ").toLowerCase().includes(query.toLowerCase())) && (!free || Number(c.price) === 0)), [remoteCourses, query, free]);
   return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">FIND YOUR NEXT COURSE</div><h1>Explore the world of learning.</h1><p>Search courses, discover new interests, and take your next step.</p></div><form className="search-bar" onSubmit={e => { e.preventDefault(); setQuery(search.trim()); }}><Search aria-hidden="true"/><input aria-label="Search courses, people" placeholder="Search courses, people..." value={search} onChange={e => setSearch(e.target.value)}/><button className="button button-primary" type="submit">Search</button></form><div className="filter-row"><span><SlidersHorizontal size={17}/> Refine your search</span><button className="button button-quiet filter-button" type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen(v => !v)}>Filter</button>{filterOpen && <label className="free-toggle"><input type="checkbox" checked={free} onChange={e => setFree(e.target.checked)}/> Free only</label>}<span className="result-count">{courses.length} {courses.length === 1 ? "course" : "courses"}</span></div>{query && <p className="query-label">Results for "{query}"</p>}{loading && !remoteCourses ? <p className="empty-state" role="status">Loading courses…</p> : courses.length ? <div className="course-grid">{courses.map(c => <CourseCard key={c.slug || c._id || c.title} course={c}/>)}</div> : <div className="empty-state"><BookOpen size={35}/><h2>No Courses Found</h2><p>Try another search or turn off the free-only filter.</p><button className="button button-quiet" onClick={() => { setSearch(""); setQuery(""); setFree(false); }}>Clear filters</button></div>}</main>;
 }
 function CourseDetail() {
