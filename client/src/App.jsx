@@ -58,19 +58,45 @@ function Home() {
   return <main><section className="hero"><div className="hero-copy"><div className="eyebrow"><span/> YOUR LEARNING JOURNEY STARTS HERE</div><h1>Learn something new.<br/><em>Become something more.</em></h1><p>Discover courses designed to help you build skills, explore your interests, and move confidently toward your goals.</p><div className="hero-actions"><Link className="button button-primary" to="/browse">Explore courses <ArrowRight size={18}/></Link><Link className="button button-quiet" to="/auth">Join EduGuru</Link></div><div className="hero-proof"><div className="proof-icons"><span>✦</span><span>✳</span><span>◈</span></div><span>Learn at your pace, on your terms</span></div></div><div className="hero-visual" aria-label="Learners studying together"><img className="hero-photo" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=90" alt="Students learning together" fetchPriority="high"/><div className="visual-orbit orbit-one"/><div className="visual-orbit orbit-two"/><div className="learning-card"><div className="learning-top"><span className="mini-mark"><GraduationCap/></span><span className="live-pill">LEARNING FOR EVERYONE</span></div><div className="book-stack"><div className="book book-back">GROW YOUR SKILLS</div><div className="book book-mid">KNOWLEDGE IS POWER</div><div className="book book-front"><BookOpen size={44}/><b>Your next chapter<br/>starts here.</b></div></div><div className="progress-row"><span>Small steps. Big growth.</span><span>↗</span></div></div><div className="floating-note"><span className="note-icon"><PlayCircle/></span><span><b>Keep learning</b><small>Your future is worth it</small></span></div><span className="sparkle sparkle-a">✳</span><span className="sparkle sparkle-b">✦</span></div></section><section className="stats" aria-label="Learning benefits"><div><strong>Learn</strong><span>at your own pace</span></div><div><strong>Explore</strong><span>topics you care about</span></div><div><strong>Grow</strong><span>one lesson at a time</span></div></section><section className="section" id="courses"><div className="section-heading"><div><div className="eyebrow">A WORLD OF KNOWLEDGE</div><h2>Popular Courses</h2><p>Find your next opportunity to learn and grow.</p></div><Link className="text-link" to="/browse">View all courses <ArrowRight size={17}/></Link></div><div className="course-grid">{courses.slice(0, 3).map(c => <CourseCard key={c.slug || c._id || c.title} course={c}/>)}</div></section><section className="join-banner" id="about"><div><div className="eyebrow">YOUR NEXT CHAPTER</div><h2>Curiosity can take you anywhere.</h2><p>Start learning today, one step at a time.</p></div><Link className="button button-light" to="/browse">Find a course <ArrowRight size={18}/></Link></section></main>;
 }
 function Browse() {
-  const [search, setSearch] = useState(""), [query, setQuery] = useState(""), [free, setFree] = useState(false), [filterOpen, setFilterOpen] = useState(false), [remoteCourses, setRemoteCourses] = useState(null), [loading, setLoading] = useState(true);
-  useEffect(() => { let active = true; setLoading(true); api.get("/courses", { params: { search: query, free: free ? "true" : "" } }).then(r => { if (active && Array.isArray(r.data.courses)) setRemoteCourses(r.data.courses); }).catch(() => { if (active) setRemoteCourses(null); }).finally(() => active && setLoading(false)); return () => { active = false; }; }, [query, free]);
-  const courses = useMemo(() => (remoteCourses !== null ? remoteCourses : fallbackCourses).filter(c => (!query || [c.title, c.description, c.instructor, c.category].join(" ").toLowerCase().includes(query.toLowerCase())) && (!free || Number(c.price) === 0)), [remoteCourses, query, free]);
-  return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">FIND YOUR NEXT COURSE</div><h1>Explore the world of learning.</h1><p>Search courses, discover new interests, and take your next step.</p></div><form className="search-bar" onSubmit={e => { e.preventDefault(); setQuery(search.trim()); }}><Search aria-hidden="true"/><input aria-label="Search courses, people" placeholder="Search courses, people..." value={search} onChange={e => setSearch(e.target.value)}/><button className="button button-primary" type="submit">Search</button></form><div className="filter-row"><span><SlidersHorizontal size={17}/> Refine your search</span><button className="button button-quiet filter-button" type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen(v => !v)}>Filter</button>{filterOpen && <label className="free-toggle"><input type="checkbox" checked={free} onChange={e => setFree(e.target.checked)}/> Free only</label>}<span className="result-count">{courses.length} {courses.length === 1 ? "course" : "courses"}</span></div>{query && <p className="query-label">Results for "{query}"</p>}{loading && !remoteCourses ? <p className="empty-state" role="status">Loading courses…</p> : courses.length ? <div className="course-grid">{courses.map(c => <CourseCard key={c.slug || c._id || c.title} course={c}/>)}</div> : <div className="empty-state"><BookOpen size={35}/><h2>No Courses Found</h2><p>Try another search or turn off the free-only filter.</p><button className="button button-quiet" onClick={() => { setSearch(""); setQuery(""); setFree(false); }}>Clear filters</button></div>}</main>;
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const [free, setFree] = useState(false);
+  const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [remoteCourses, setRemoteCourses] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+  useEffect(() => {
+    let active = true; setLoading(true); setApiError(false);
+    api.get("/courses", { params: { search: query, free: free ? "true" : "", category, page, limit: 9 } })
+      .then(r => { if (!active) return; setRemoteCourses(Array.isArray(r.data.courses) ? r.data.courses : []); setCategories(Array.isArray(r.data.categories) ? r.data.categories : []); setPagination(r.data.pagination || { page: 1, pages: 1, total: (r.data.courses || []).length }); })
+      .catch(() => { if (active) { setRemoteCourses(null); setApiError(true); } })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [query, free, category, page]);
+  const courses = useMemo(() => (remoteCourses !== null ? remoteCourses : fallbackCourses).filter(c => (!query || [c.title, c.description, c.instructor, c.category].join(" ").toLowerCase().includes(query.toLowerCase()))).filter(c => (!category || c.category === category)).filter(c => (!free || Number(c.price) === 0)), [remoteCourses, query, free, category]);
+  function resetFilters() { setSearch(""); setQuery(""); setFree(false); setCategory(""); setPage(1); }
+  return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">FIND YOUR NEXT COURSE</div><h1>Explore the world of learning.</h1><p>Search courses, discover new interests, and take your next step.</p></div>
+    <form className="search-bar" onSubmit={e => { e.preventDefault(); setQuery(search.trim()); setPage(1); }}><Search aria-hidden="true"/><input aria-label="Search courses, people" placeholder="Search courses, people..." value={search} onChange={e => setSearch(e.target.value)}/><button className="button button-primary" type="submit">Search</button></form>
+    <div className="filter-row"><span><SlidersHorizontal size={17}/> Refine your search</span><button className="button button-quiet filter-button" type="button" aria-expanded={filterOpen} onClick={() => setFilterOpen(v => !v)}>Filters</button>{filterOpen && <div className="course-filters"><label>Category<select aria-label="Filter by category" value={category} onChange={e => { setCategory(e.target.value); setPage(1); }}><option value="">All categories</option>{(categories.length ? categories : [...new Set(fallbackCourses.map(c => c.category))]).map(item => <option key={item} value={item}>{item}</option>)}</select></label><label className="free-toggle"><input type="checkbox" checked={free} onChange={e => { setFree(e.target.checked); setPage(1); }}/> Free only</label></div>}<span className="result-count">{remoteCourses !== null ? pagination.total : courses.length} courses</span></div>
+    {query && <p className="query-label">Results for "{query}"</p>}{apiError && <p className="form-error" role="status">Live course data is temporarily unavailable. Showing the available demo catalogue.</p>}
+    {loading ? <div className="course-grid" aria-label="Loading courses" role="status">{[1,2,3,4,5,6].map(n => <div className="course-card course-skeleton" key={n}><div className="skeleton-art"/><div className="course-content"><div className="skeleton-line"/><div className="skeleton-line short"/><div className="skeleton-line"/></div></div>)}</div> : courses.length ? <div className="course-grid">{courses.map(c => <CourseCard key={c.slug || c._id || c.title} course={c}/>)}</div> : <div className="empty-state"><BookOpen size={35}/><h2>No Courses Found</h2><p>Try another search or turn off a filter.</p><button className="button button-quiet" onClick={resetFilters}>Clear filters</button></div>}
+    {!loading && remoteCourses !== null && pagination.pages > 1 && <nav className="pagination" aria-label="Course pages"><button className="button button-quiet" disabled={page <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}>Previous</button><span>Page {pagination.page} of {pagination.pages}</span><button className="button button-quiet" disabled={page >= pagination.pages} onClick={() => setPage(value => Math.min(pagination.pages, value + 1))}>Next</button></nav>}
+  </main>;
 }
+
 function CourseDetail() {
   const { slug } = useParams();
   const [course, setCourse] = useState(fallbackCourses.find(c => c.slug === slug));
+  const [lessons, setLessons] = useState([]);
   const [error, setError] = useState("");
   const [enrolling, setEnrolling] = useState(false);
   const [enrollMessage, setEnrollMessage] = useState("");
   const navigate = useNavigate();
-  useEffect(() => { let active = true; api.get(`/courses/${slug}`).then(r => { if (active) setCourse(r.data.course); }).catch(() => { if (active && !fallbackCourses.some(c => c.slug === slug)) setError("This course could not be found."); }); return () => { active = false; }; }, [slug]);
+  useEffect(() => { let active = true; api.get(`/courses/${slug}`).then(r => { if (active) { setCourse(r.data.course); setLessons(Array.isArray(r.data.lessons) ? r.data.lessons : []); } }).catch(() => { if (active && !fallbackCourses.some(c => c.slug === slug)) setError("This course could not be found."); }); return () => { active = false; }; }, [slug]);
   async function enroll() {
     const token = localStorage.getItem("eduguru-token");
     if (!token) { navigate("/auth"); return; }
@@ -82,7 +108,7 @@ function CourseDetail() {
   }
   if (error) return <main className="empty-state"><h2>{error}</h2><Link className="button button-primary" to="/browse">Browse courses</Link></main>;
   if (!course) return <main className="empty-state">Loading course…</main>;
-  return <main className="detail-page"><Link className="text-link" to="/browse">← Back to courses</Link><div className="detail-layout"><div><div className="course-art detail-art"><img className="course-image" src={courseImage(course)} alt={`${course.title} learning cover`} onError={e => { e.currentTarget.style.display = "none"; }}/><span className="detail-image-label"><GraduationCap size={22}/> EduGuru learning path</span></div><div className="eyebrow">{course.category}</div><h1>{course.title}</h1><p>{course.description}</p><h2>About this course</h2><p>Learn with a structured, self-paced learning experience. Follow the lessons at a pace that works for you and return whenever you need to review.</p></div><aside className="enroll-card"><span className="course-category">COURSE ACCESS</span><h2>{Number(course.price) === 0 ? "Free" : `LKR ${Number(course.price).toLocaleString()}`}</h2><p><PlayCircle size={17}/> {course.lessonsCount || 0} lessons</p><p><UserRound size={17}/> {course.instructor || "EduGuru Learning Team"}</p><button className="button button-primary full-button" type="button" onClick={enroll} disabled={enrolling}>{enrolling ? "Enrolling…" : "Enroll in this course"} <ArrowRight size={17}/></button>{enrollMessage && <p role="status" className="enrollment-message">{enrollMessage}</p>}</aside></div></main>;
+  return <main className="detail-page"><Link className="text-link" to="/browse">← Back to courses</Link><div className="detail-layout"><div><div className="course-art detail-art"><img className="course-image" src={courseImage(course)} alt={`${course.title} learning cover`} onError={e => { e.currentTarget.style.display = "none"; }}/><span className="detail-image-label"><GraduationCap size={22}/> EduGuru learning path</span></div><div className="eyebrow">{course.category}</div><h1>{course.title}</h1><p>{course.description}</p><h2>About this course</h2><p>Learn with a structured, self-paced learning experience. Follow the lessons at a pace that works for you and return whenever you need to review.</p><section className="section lesson-outline"><h2>Course lessons</h2>{lessons.length ? <ol>{lessons.map(lesson => <li key={lesson._id}><Link to={localStorage.getItem("eduguru-token") ? `/lesson/${lesson._id}` : "/auth"}><span>{lesson.order}. {lesson.title}</span><span>{lesson.durationMinutes ? lesson.durationMinutes + " min" : "Lesson"} <ArrowRight size={15}/></span></Link>{lesson.description && <p>{lesson.description}</p>}</li>)}</ol> : <p>Lessons will appear here when the course content is published.</p>}</section></div><aside className="enroll-card"><span className="course-category">COURSE ACCESS</span><h2>{Number(course.price) === 0 ? "Free" : `LKR ${Number(course.price).toLocaleString()}`}</h2><p><PlayCircle size={17}/> {course.lessonsCount || 0} lessons</p><p><UserRound size={17}/> {course.instructor || "EduGuru Learning Team"}</p><button className="button button-primary full-button" type="button" onClick={enroll} disabled={enrolling}>{enrolling ? "Enrolling…" : "Enroll in this course"} <ArrowRight size={17}/></button>{enrollMessage && <p role="status" className="enrollment-message">{enrollMessage}</p>}</aside></div></main>;
 }
 function Auth() {
   const [mode, setMode] = useState("login"), [name, setName] = useState(""), [email, setEmail] = useState(""), [password, setPassword] = useState(""), [age, setAge] = useState(""), [gender, setGender] = useState(""), [step, setStep] = useState(0), [error, setError] = useState(""), [busy, setBusy] = useState(false); const navigate = useNavigate();
@@ -124,9 +150,108 @@ function Profile() {
 }
 function MenuPage() { return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">EDUGURU</div><h1>Explore EduGuru</h1><p>Everything you need to continue your learning journey.</p></div><div className="course-grid menu-grid">{[[HomeIcon,"Home","/home","https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=85"],[BookOpen,"Browse courses","/browse","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Info,"About EduGuru","/about","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[CircleHelp,"Help & Support","/help-support","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Mail,"Contact","/contact","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[Download,"Download app","/download-app","https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=85"]].map(([Icon,label,to,image])=><Link className="course-card menu-card" to={to} key={to}><div className="menu-art"><img src={image} alt="" loading="lazy"/><span className="menu-art-icon"><Icon size={24}/></span></div><div className="course-content"><span className="note-icon"><Icon/></span><h3>{label}</h3><p>Explore {label.toLowerCase()} on EduGuru.</p><span className="text-link">Open page <ArrowRight size={16}/></span></div></Link>)}</div></main>; }
 function InfoPage({ path }) { const info = pageInfo[path] || pageInfo["/about"]; const Icon = info.icon; const [sent, setSent] = useState(false); const [sending, setSending] = useState(false); const [contactError, setContactError] = useState(""); async function submitContact(e) { e.preventDefault(); setSending(true); setContactError(""); setSent(false); const form = e.currentTarget; const fields = new FormData(form); try { await api.post("/contact", { name: fields.get("name"), email: fields.get("email"), message: fields.get("message") }); setSent(true); form.reset(); } catch (err) { setContactError(err.response?.data?.message || "We could not send your message. Please try again later."); } finally { setSending(false); } } return <main className="browse-page info-page"><div className="info-cover"><img src={path === "/about" ? "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=85" : path === "/contact" || path === "/help-support" ? "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85" : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=85"} alt={info.title} loading="lazy"/><div className="info-cover-caption"><span>{info.intro}</span><strong>{info.title}</strong></div></div><div className="auth-card info-card"><div className="auth-icon"><Icon size={28}/></div><div className="eyebrow">{info.intro}</div><h1>{info.title}</h1><p>{info.body}</p>{path === "/contact" && <form onSubmit={submitContact}><label>Your name<input name="name" required minLength="2" aria-label="Your name" placeholder="Your name"/></label><label>Email address<input name="email" required type="email" aria-label="Email address" placeholder="you@example.com"/></label><label>Message<textarea name="message" required minLength="10" maxLength="5000" aria-label="Message" placeholder="How can we help?"/></label>{contactError && <p className="form-error" role="alert">{contactError}</p>}<button className="button button-primary full-button" type="submit" disabled={sending}>{sending ? "Sending…" : "Send message"} <ArrowRight size={16}/></button>{sent && <p role="status">Thanks — your message was sent to EduGuru support.</p>}</form>}{path === "/help-support" && <div className="support-links"><Link to="/contact">Contact support <ArrowRight size={16}/></Link><Link to="/browse">Browse courses <ArrowRight size={16}/></Link></div>}{path === "/resources" && <Link className="button button-primary" to="/browse">Explore courses <ArrowRight size={16}/></Link>}{path === "/download-app" && <Link className="button button-primary" to="/browse">Continue on the web <ArrowRight size={16}/></Link>}</div></main>; }
+
+
+function LessonPage() {
+  const { lessonId } = useParams();
+  const navigate = useNavigate();
+  const [lesson, setLesson] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    let active = true;
+    if (!localStorage.getItem("eduguru-token")) { navigate("/auth", { replace: true }); return () => { active = false; }; }
+    Promise.all([api.get("/lessons/" + lessonId), api.get("/enrollments")]).then(([lessonResult, enrollmentResult]) => {
+      if (!active) return;
+      const foundLesson = lessonResult.data.lesson;
+      setLesson(foundLesson);
+      const foundEnrollment = (enrollmentResult.data.enrollments || []).find(item => String(item.course?._id || item.course) === String(foundLesson.course?._id || foundLesson.course));
+      setEnrollment(foundEnrollment || null);
+    }).catch(err => { if (active) setError(err.response?.data?.message || "Lesson could not be loaded."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [lessonId, navigate]);
+  async function completeLesson() {
+    if (!enrollment) return;
+    setSaving(true); setMessage(""); setError("");
+    try {
+      const { data } = await api.post("/enrollments/" + enrollment._id + "/lessons/" + lessonId + "/complete");
+      setEnrollment(current => ({ ...current, progress: data.enrollment.progress, status: data.enrollment.status }));
+      setMessage("Lesson marked complete. Course progress: " + data.enrollment.progress + "%.");
+    } catch (err) { setError(err.response?.data?.message || "Could not save lesson progress."); }
+    finally { setSaving(false); }
+  }
+  if (loading) return <main className="empty-state" role="status">Loading lesson…</main>;
+  if (error && !lesson) return <main className="empty-state"><h2>{error}</h2><Link className="button button-primary" to="/browse">Browse courses</Link></main>;
+  if (!lesson) return null;
+  return <main className="browse-page lesson-page"><Link className="text-link" to={"/course/" + (lesson.course?.slug || "")}>← Back to course</Link><div className="eyebrow">LESSON {lesson.order}</div><h1>{lesson.title}</h1>{lesson.description && <p>{lesson.description}</p>}{lesson.videoUrl && <p><a href={lesson.videoUrl} target="_blank" rel="noreferrer">Open lesson video <ArrowRight size={16}/></a></p>}<article className="auth-card lesson-content">{lesson.content ? <div style={{ whiteSpace: "pre-wrap" }}>{lesson.content}</div> : <p>The instructor has not added lesson notes yet.</p>}{!enrollment ? <p>Enroll in this course to save your lesson progress.</p> : <button className="button button-primary" onClick={completeLesson} disabled={saving}>{saving ? "Saving…" : "Mark lesson complete"}</button>}{message && <p role="status">{message}</p>}{error && <p className="form-error" role="alert">{error}</p>}</article></main>;
+}
+
+function AdminPage() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ title: "", slug: "", description: "", category: "Technology", instructor: "", level: "Beginner", price: "0", imageUrl: "", published: true });
+  const token = localStorage.getItem("eduguru-token");
+  async function loadCourses() {
+    setLoading(true); setError("");
+    try { const { data } = await api.get("/admin/courses"); setCourses(data.courses || []); }
+    catch (err) { setError(err.response?.data?.message || "Could not load admin courses."); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { if (!token) { setError("Please sign in with an administrator account."); setLoading(false); return; } loadCourses(); }, []);
+  function updateField(e) {
+    const { name, value, type, checked } = e.target;
+    setForm(current => ({ ...current, [name]: type === "checkbox" ? checked : value, ...(name === "title" ? { slug: value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") } : {}) }));
+  }
+  async function createCourse(e) {
+    e.preventDefault(); setBusy(true); setError(""); setMessage("");
+    try {
+      await api.post("/admin/courses", { ...form, price: Number(form.price), published: Boolean(form.published) });
+      setMessage("Course created successfully."); setForm({ title: "", slug: "", description: "", category: "Technology", instructor: "", level: "Beginner", price: "0", imageUrl: "", published: true }); await loadCourses();
+    } catch (err) { setError(err.response?.data?.message || "Course could not be created."); }
+    finally { setBusy(false); }
+  }
+  async function togglePublished(course) {
+    setError(""); setMessage("");
+    try { await api.patch("/admin/courses/" + course._id, { published: !course.published }); setMessage("Course visibility updated."); await loadCourses(); }
+    catch (err) { setError(err.response?.data?.message || "Could not update course."); }
+  }
+  async function deleteCourse(course) {
+    if (!window.confirm("Delete " + course.title + " and its enrollments and lessons?")) return;
+    setError(""); setMessage("");
+    try { await api.delete("/admin/courses/" + course._id); setMessage("Course deleted."); await loadCourses(); }
+    catch (err) { setError(err.response?.data?.message || "Could not delete course."); }
+  }
+  return <main className="browse-page admin-page">
+    <div className="browse-intro"><div className="eyebrow">EDUGURU ADMINISTRATION</div><h1>Course management</h1><p>Create courses, control publication, and maintain the learning catalogue.</p></div>
+    {error && <p className="form-error" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
+    <section className="auth-card admin-form-card"><h2>Create a course</h2><form onSubmit={createCourse}>
+      <label>Course title<input name="title" value={form.title} onChange={updateField} required minLength="3" maxLength="160" /></label>
+      <label>URL slug<input name="slug" value={form.slug} onChange={updateField} required pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
+      <label>Description<textarea name="description" value={form.description} onChange={updateField} required minLength="10" /></label>
+      <label>Category<input name="category" value={form.category} onChange={updateField} required /></label>
+      <label>Instructor<input name="instructor" value={form.instructor} onChange={updateField} placeholder="EduGuru Instructor" /></label>
+      <label>Level<select name="level" value={form.level} onChange={updateField}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+      <label>Price (LKR)<input name="price" type="number" min="0" step="1" value={form.price} onChange={updateField} required /></label>
+      <label>Cover image URL<input name="imageUrl" type="url" value={form.imageUrl} onChange={updateField} placeholder="https://…" /></label>
+      <label><input name="published" type="checkbox" checked={form.published} onChange={updateField} /> Publish immediately</label>
+      <button className="button button-primary full-button" disabled={busy}>{busy ? "Creating…" : "Create course"} <ArrowRight size={17}/></button>
+    </form></section>
+    <section className="section"><div className="section-heading"><div><div className="eyebrow">CATALOGUE</div><h2>Existing courses</h2></div><button className="button button-quiet" onClick={loadCourses}>Refresh</button></div>
+    {loading ? <p role="status">Loading courses…</p> : courses.length ? <div className="course-grid">{courses.map(course => <article className="course-card" key={course._id}><div className="course-content"><span className="course-category">{course.published ? "Published" : "Draft"} · {course.category}</span><h3>{course.title}</h3><p>{course.description}</p><div className="course-meta"><span>{course.lessonsCount || 0} lessons</span><strong>{Number(course.price) === 0 ? "FREE" : "LKR " + Number(course.price).toLocaleString()}</strong></div><div className="profile-actions"><button className="button button-quiet" onClick={() => togglePublished(course)}>{course.published ? "Unpublish" : "Publish"}</button><button className="button button-quiet" onClick={() => deleteCourse(course)}>Delete</button></div></div></article>)}</div> : <div className="empty-state">No courses found. Create your first course above.</div>}
+    </section>
+  </main>;
+}
+
 function Footer() { return <footer className="footer"><Link to="/" className="brand"><span className="brand-mark"><GraduationCap size={22}/></span><span>EduGuru<small>Learn · Grow · Succeed</small></span></Link><p>Learning opens doors. Take your next step with EduGuru.</p><div><Link to="/browse">Courses</Link><Link to="/about">About</Link><Link to="/contact">Contact</Link><Link to="/help-support">Help & Support</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div><small>© {new Date().getFullYear()} EduGuru. Built for curious minds.</small></footer>; }
 export default function App() {
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
+  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/lesson/:lessonId" element={<LessonPage/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/admin" element={<AdminPage/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
 }
