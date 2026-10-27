@@ -13,9 +13,12 @@ import lessonsRouter from "./routes/lessons.js";
 
 const app = express();
 const allowedOrigins = (process.env.CLIENT_URL || "").split(",").map(v => v.trim()).filter(Boolean);
+// Allow only the configured site(s) and deployment previews belonging to this EduGuru Vercel project.
+const isTrustedEduGuruPreview = origin =>
+  /^https:\/\/eduguru-mern-[a-z0-9-]+-abdur-rahman7\.vercel\.app$/.test(origin);
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin) || isTrustedEduGuruPreview(origin)) return callback(null, true);
     return callback(new Error("Origin not allowed by CORS"));
   }
 }));
