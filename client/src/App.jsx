@@ -124,9 +124,69 @@ function Profile() {
 }
 function MenuPage() { return <main className="browse-page"><div className="browse-intro"><div className="eyebrow">EDUGURU</div><h1>Explore EduGuru</h1><p>Everything you need to continue your learning journey.</p></div><div className="course-grid menu-grid">{[[HomeIcon,"Home","/home","https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=85"],[BookOpen,"Browse courses","/browse","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Info,"About EduGuru","/about","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[CircleHelp,"Help & Support","/help-support","https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85"],[Mail,"Contact","/contact","https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=85"],[Download,"Download app","/download-app","https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=85"]].map(([Icon,label,to,image])=><Link className="course-card menu-card" to={to} key={to}><div className="menu-art"><img src={image} alt="" loading="lazy"/><span className="menu-art-icon"><Icon size={24}/></span></div><div className="course-content"><span className="note-icon"><Icon/></span><h3>{label}</h3><p>Explore {label.toLowerCase()} on EduGuru.</p><span className="text-link">Open page <ArrowRight size={16}/></span></div></Link>)}</div></main>; }
 function InfoPage({ path }) { const info = pageInfo[path] || pageInfo["/about"]; const Icon = info.icon; const [sent, setSent] = useState(false); const [sending, setSending] = useState(false); const [contactError, setContactError] = useState(""); async function submitContact(e) { e.preventDefault(); setSending(true); setContactError(""); setSent(false); const form = e.currentTarget; const fields = new FormData(form); try { await api.post("/contact", { name: fields.get("name"), email: fields.get("email"), message: fields.get("message") }); setSent(true); form.reset(); } catch (err) { setContactError(err.response?.data?.message || "We could not send your message. Please try again later."); } finally { setSending(false); } } return <main className="browse-page info-page"><div className="info-cover"><img src={path === "/about" ? "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=85" : path === "/contact" || path === "/help-support" ? "https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=85" : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=85"} alt={info.title} loading="lazy"/><div className="info-cover-caption"><span>{info.intro}</span><strong>{info.title}</strong></div></div><div className="auth-card info-card"><div className="auth-icon"><Icon size={28}/></div><div className="eyebrow">{info.intro}</div><h1>{info.title}</h1><p>{info.body}</p>{path === "/contact" && <form onSubmit={submitContact}><label>Your name<input name="name" required minLength="2" aria-label="Your name" placeholder="Your name"/></label><label>Email address<input name="email" required type="email" aria-label="Email address" placeholder="you@example.com"/></label><label>Message<textarea name="message" required minLength="10" maxLength="5000" aria-label="Message" placeholder="How can we help?"/></label>{contactError && <p className="form-error" role="alert">{contactError}</p>}<button className="button button-primary full-button" type="submit" disabled={sending}>{sending ? "Sending…" : "Send message"} <ArrowRight size={16}/></button>{sent && <p role="status">Thanks — your message was sent to EduGuru support.</p>}</form>}{path === "/help-support" && <div className="support-links"><Link to="/contact">Contact support <ArrowRight size={16}/></Link><Link to="/browse">Browse courses <ArrowRight size={16}/></Link></div>}{path === "/resources" && <Link className="button button-primary" to="/browse">Explore courses <ArrowRight size={16}/></Link>}{path === "/download-app" && <Link className="button button-primary" to="/browse">Continue on the web <ArrowRight size={16}/></Link>}</div></main>; }
+
+function AdminPage() {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({ title: "", slug: "", description: "", category: "Technology", instructor: "", level: "Beginner", price: "0", imageUrl: "", published: true });
+  const token = localStorage.getItem("eduguru-token");
+  async function loadCourses() {
+    setLoading(true); setError("");
+    try { const { data } = await api.get("/admin/courses"); setCourses(data.courses || []); }
+    catch (err) { setError(err.response?.data?.message || "Could not load admin courses."); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { if (!token) { setError("Please sign in with an administrator account."); setLoading(false); return; } loadCourses(); }, []);
+  function updateField(e) {
+    const { name, value, type, checked } = e.target;
+    setForm(current => ({ ...current, [name]: type === "checkbox" ? checked : value, ...(name === "title" ? { slug: value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") } : {}) }));
+  }
+  async function createCourse(e) {
+    e.preventDefault(); setBusy(true); setError(""); setMessage("");
+    try {
+      await api.post("/admin/courses", { ...form, price: Number(form.price), published: Boolean(form.published) });
+      setMessage("Course created successfully."); setForm({ title: "", slug: "", description: "", category: "Technology", instructor: "", level: "Beginner", price: "0", imageUrl: "", published: true }); await loadCourses();
+    } catch (err) { setError(err.response?.data?.message || "Course could not be created."); }
+    finally { setBusy(false); }
+  }
+  async function togglePublished(course) {
+    setError(""); setMessage("");
+    try { await api.patch("/admin/courses/" + course._id, { published: !course.published }); setMessage("Course visibility updated."); await loadCourses(); }
+    catch (err) { setError(err.response?.data?.message || "Could not update course."); }
+  }
+  async function deleteCourse(course) {
+    if (!window.confirm("Delete " + course.title + " and its enrollments and lessons?")) return;
+    setError(""); setMessage("");
+    try { await api.delete("/admin/courses/" + course._id); setMessage("Course deleted."); await loadCourses(); }
+    catch (err) { setError(err.response?.data?.message || "Could not delete course."); }
+  }
+  return <main className="browse-page admin-page">
+    <div className="browse-intro"><div className="eyebrow">EDUGURU ADMINISTRATION</div><h1>Course management</h1><p>Create courses, control publication, and maintain the learning catalogue.</p></div>
+    {error && <p className="form-error" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
+    <section className="auth-card admin-form-card"><h2>Create a course</h2><form onSubmit={createCourse}>
+      <label>Course title<input name="title" value={form.title} onChange={updateField} required minLength="3" maxLength="160" /></label>
+      <label>URL slug<input name="slug" value={form.slug} onChange={updateField} required pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
+      <label>Description<textarea name="description" value={form.description} onChange={updateField} required minLength="10" /></label>
+      <label>Category<input name="category" value={form.category} onChange={updateField} required /></label>
+      <label>Instructor<input name="instructor" value={form.instructor} onChange={updateField} placeholder="EduGuru Instructor" /></label>
+      <label>Level<select name="level" value={form.level} onChange={updateField}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+      <label>Price (LKR)<input name="price" type="number" min="0" step="1" value={form.price} onChange={updateField} required /></label>
+      <label>Cover image URL<input name="imageUrl" type="url" value={form.imageUrl} onChange={updateField} placeholder="https://…" /></label>
+      <label><input name="published" type="checkbox" checked={form.published} onChange={updateField} /> Publish immediately</label>
+      <button className="button button-primary full-button" disabled={busy}>{busy ? "Creating…" : "Create course"} <ArrowRight size={17}/></button>
+    </form></section>
+    <section className="section"><div className="section-heading"><div><div className="eyebrow">CATALOGUE</div><h2>Existing courses</h2></div><button className="button button-quiet" onClick={loadCourses}>Refresh</button></div>
+    {loading ? <p role="status">Loading courses…</p> : courses.length ? <div className="course-grid">{courses.map(course => <article className="course-card" key={course._id}><div className="course-content"><span className="course-category">{course.published ? "Published" : "Draft"} · {course.category}</span><h3>{course.title}</h3><p>{course.description}</p><div className="course-meta"><span>{course.lessonsCount || 0} lessons</span><strong>{Number(course.price) === 0 ? "FREE" : "LKR " + Number(course.price).toLocaleString()}</strong></div><div className="profile-actions"><button className="button button-quiet" onClick={() => togglePublished(course)}>{course.published ? "Unpublish" : "Publish"}</button><button className="button button-quiet" onClick={() => deleteCourse(course)}>Delete</button></div></div></article>)}</div> : <div className="empty-state">No courses found. Create your first course above.</div>}
+    </section>
+  </main>;
+}
+
 function Footer() { return <footer className="footer"><Link to="/" className="brand"><span className="brand-mark"><GraduationCap size={22}/></span><span>EduGuru<small>Learn · Grow · Succeed</small></span></Link><p>Learning opens doors. Take your next step with EduGuru.</p><div><Link to="/browse">Courses</Link><Link to="/about">About</Link><Link to="/contact">Contact</Link><Link to="/help-support">Help & Support</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link></div><small>© {new Date().getFullYear()} EduGuru. Built for curious minds.</small></footer>; }
 export default function App() {
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
-  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
+  return <><Header/><Routes><Route path="/" element={<Home/>}/><Route path="/home" element={<Home/>}/><Route path="/menu" element={<MenuPage/>}/><Route path="/browse" element={<Browse/>}/><Route path="/courses" element={<Auth/>}/><Route path="/course/:slug" element={<CourseDetail/>}/><Route path="/auth" element={<Auth/>}/><Route path="/profile" element={<Profile/>}/><Route path="/admin" element={<AdminPage/>}/><Route path="/about" element={<InfoPage path="/about"/>}/><Route path="/terms" element={<InfoPage path="/terms"/>}/><Route path="/privacy" element={<InfoPage path="/privacy"/>}/><Route path="/contact" element={<InfoPage path="/contact"/>}/><Route path="/help-support" element={<InfoPage path="/help-support"/>}/><Route path="/resources" element={<InfoPage path="/resources"/>}/><Route path="/download-app" element={<InfoPage path="/download-app"/>}/><Route path="*" element={<Home/>}/></Routes><Footer/></>;
 }
