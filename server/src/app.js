@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import Course from "./models/Course.js";
 import User from "./models/User.js";
 import Enrollment from "./models/Enrollment.js";
+import ContactMessage from "./models/ContactMessage.js";
 import { requireAuth, requireAdmin } from "./middleware/auth.js";
 import { connectDB } from "./db.js";
 const app = express();
@@ -12,6 +13,7 @@ app.use(cors({ origin: (origin, callback) => (!origin || !allowedOrigins.length 
 app.use(express.json({ limit: "1mb" }));
 app.get("/api/health", (_req,res) => res.json({status:"ok",service:"EduGuru API"}));
 app.use(async (_req,res,next) => { try { await connectDB(); next(); } catch (error) { console.error("MongoDB connection failed:", error.message); res.status(503).json({message:"Database temporarily unavailable. Check the server database configuration."}); } });
+app.post("/api/contact", async (req,res,next)=>{ try { const name=String(req.body.name||"").trim(), email=String(req.body.email||"").trim().toLowerCase(), message=String(req.body.message||"").trim(); if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||message.length<10||message.length>5000) return res.status(400).json({message:"Enter your name, a valid email, and a message between 10 and 5000 characters."}); await ContactMessage.create({name,email,message}); res.status(201).json({message:"Your message has been sent to the EduGuru support team."}); } catch(e){next(e);} });
 app.get("/api/courses", async (req,res,next) => { try { const {search="",category="",free="",page="1",limit="12"}=req.query; const filter={published:true}; if(search.trim()) filter.$or=[{title:{$regex:search.trim(),$options:"i"}},{description:{$regex:search.trim(),$options:"i"}},{instructor:{$regex:search.trim(),$options:"i"}}]; if(category) filter.category=category; if(free==="true") filter.price=0; const p=Math.max(1,Number(page)||1),n=Math.min(48,Math.max(1,Number(limit)||12)); const [courses,total]=await Promise.all([Course.find(filter).sort({createdAt:-1}).skip((p-1)*n).limit(n).lean(),Course.countDocuments(filter)]); res.json({courses,pagination:{page:p,limit:n,total,pages:Math.ceil(total/n)}}); } catch(e){next(e);} });
 app.get("/api/courses/:slug", async (req,res,next) => { try { const course=await Course.findOne({slug:req.params.slug,published:true}).lean(); if(!course)return res.status(404).json({message:"Course not found."}); res.json({course}); } catch(e){next(e);} });
 app.post("/api/auth/register", async(req,res,next)=>{try{const name=String(req.body.name||"").trim(),email=String(req.body.email||"").trim().toLowerCase(),password=String(req.body.password||"");if(name.length<2||!/^\S+@\S+\.\S+$/.test(email)||password.length<8)return res.status(400).json({message:"Enter a name, valid email, and password of at least 8 characters."});if(await User.exists({email}))return res.status(409).json({message:"An account with this email already exists."});const user=await User.create({name,email,password});const token=jwt.sign({id:user.id,role:user.role},process.env.JWT_SECRET,{expiresIn:"7d"});res.status(201).json({token,user:{id:user.id,name:user.name,email:user.email,role:user.role}});}catch(e){next(e);}});
