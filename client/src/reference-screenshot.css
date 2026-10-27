@@ -55,3 +55,32 @@
 @media(max-width:1100px){.app-shell{grid-template-columns:210px minmax(0,1fr) 285px;gap:8px;padding:8px}.reference-course-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:850px){.app-shell{grid-template-columns:190px minmax(0,1fr)}.right-sidebar{display:none}.reference-course-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.app-shell{display:block;padding:0}.left-sidebar,.right-sidebar{display:none!important}.main-column{border-radius:0;min-height:100vh}.reference-header{height:52px!important}.reference-header .brand{font-size:24px!important}.reference-home-hero{height:168px;padding:24px 17px 16px}.reference-hero-title{font-size:24px}.reference-home-tabs{margin-left:10px;margin-right:10px}.reference-home-tabs button{font-size:9px}.reference-feature-row{padding:0 10px 13px;gap:8px}.reference-featured-course{height:126px}.reference-featured-course>span{font-size:15px;left:8px}.reference-featured-course>span b{font-size:18px}.reference-feature-stack{padding:8px;gap:6px;min-height:59px}.reference-feature-stack>span{height:33px;width:33px}.reference-feature-stack strong{font-size:10px}.reference-feature-stack small{font-size:8px}.reference-popular{padding:0 9px}.reference-course-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.reference-course-card .course-art{height:110px}.reference-course-card .course-content{padding:10px}.reference-course-card .course-content h3{font-size:12px}.reference-course-card .course-meta strong{font-size:12px}}
+
+
+/* Browse page based on the reference catalogue screen */
+.reference-browse{background:#fff;min-height:calc(100vh - 52px);padding-bottom:28px}
+.reference-browse-hero{height:208px;position:relative;padding:25px 20px 18px;background:linear-gradient(115deg,#4a05a7 0%,#7723df 60%,#9752ff 100%);color:#fff;overflow:hidden}
+.reference-browse-hero:after{content:"";position:absolute;right:10%;top:25px;width:75px;height:75px;border-radius:50%;background:#ffffff0b;box-shadow:0 0 0 30px #ffffff08}
+.browse-eyebrow{font-size:9px;font-weight:900;letter-spacing:1.2px;color:#e5d2ff;margin-bottom:6px}
+.reference-browse-hero h1{position:relative;z-index:1;font:900 23px/1.15 Nunito,sans-serif;letter-spacing:-.4px;margin:0 0 18px;color:#fff}
+.reference-browse-hero .reference-home-search{max-width:100%}
+.reference-browse-hero .reference-home-search input{height:40px}
+.reference-browse-tabs{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:-21px 15px 12px;padding:5px;border-radius:23px;background:#fff;box-shadow:0 7px 18px #35115b17}
+.reference-browse-tabs button{border:0;background:transparent;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;color:#9692a4;font:800 11px Nunito,sans-serif;cursor:pointer}
+.reference-browse-tabs button.selected{background:linear-gradient(110deg,#4b05a6,#8d43ed);color:#fff;box-shadow:0 3px 9px #6517b74a}
+.reference-browse-filters{display:flex;align-items:center;gap:7px;padding:0 16px 15px;position:relative}
+.reference-browse-filters>button,.filter-wrap>button{display:flex;align-items:center;gap:5px;border:1px solid #e8d9ff;border-radius:18px;background:#f7f0ff;color:#6c24d1;padding:8px 11px;font:800 10px Nunito,sans-serif;cursor:pointer;white-space:nowrap}
+.reference-browse-filters>button.selected{background:linear-gradient(110deg,#4b05a6,#8d43ed);color:#fff;border-color:transparent;box-shadow:0 3px 8px #6517b73b}
+.filter-wrap{position:relative}.filter-wrap>button span,.reference-browse-filters>button span{font-size:13px}
+.filter-popover{position:absolute;z-index:10;top:37px;left:0;min-width:170px;max-height:260px;overflow:auto;padding:6px;background:white;border:1px solid #e7d8fb;border-radius:13px;box-shadow:0 10px 25px #3e087f21}
+.filter-popover button{display:block;width:100%;border:0;background:white;text-align:left;padding:9px;border-radius:8px;font:700 11px Nunito,sans-serif;color:#4f416d;cursor:pointer}.filter-popover button:hover{background:#f5ebff}
+.reference-course-count{margin-left:auto;font-size:9px;color:#7828d8;background:#f3e8ff;padding:6px 10px;border-radius:16px;white-space:nowrap;font-weight:900}
+.reference-browse-results{padding:0 14px}
+.reference-browse-heading{display:flex;align-items:center;justify-content:space-between;margin:0 3px 9px}
+.reference-browse-heading h2{font:900 14px Nunito,sans-serif;color:#1b1524;margin:0}
+.reference-browse-heading>span{font-size:9px;font-weight:900;color:#7828d8;background:#f3e8ff;padding:5px 10px;border-radius:14px}
+.reference-browse-error{margin:0 15px 12px;padding:9px;background:#fff7e8;color:#9b5b00;border-radius:9px;font-size:10px}
+.reference-card-skeleton{height:230px;border-radius:17px;background:linear-gradient(100deg,#f4eef9 20%,#fff 45%,#f4eef9 70%);background-size:200% 100%;animation:ref-shimmer 1.2s infinite}
+.reference-users-empty{display:flex;align-items:center;flex-direction:column;gap:8px;text-align:center;padding:50px 20px;color:#8e81a5}.reference-users-empty h2{font-size:18px;color:#30154e;margin:5px}.reference-users-empty p{font-size:11px;margin:0 0 8px}
+@keyframes ref-shimmer{to{background-position:-200% 0}}
+@media(max-width:600px){.reference-browse-hero{height:190px;padding:23px 16px 15px}.reference-browse-hero h1{font-size:22px}.reference-browse-filters{padding:0 10px 13px;gap:5px}.reference-browse-filters>button,.filter-wrap>button{padding:8px;font-size:9px}.reference-browse-results{padding:0 9px}.reference-browse-heading h2{font-size:13px}.reference-course-count{font-size:8px;padding:5px 7px}.reference-browse-tabs{margin-left:10px;margin-right:10px}}
