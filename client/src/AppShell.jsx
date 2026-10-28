@@ -30,7 +30,7 @@ function LeftSidebar() {
   const location = useLocation();
   return <aside className="left-sidebar">
     <section className="sidebar-welcome"><span className="welcome-icon"><GraduationCap size={24}/></span><strong>Start Learning Today</strong><p>Join thousands of students &amp; teachers on EduGuru</p><div><Link to="/auth">Sign In</Link><Link to="/auth" className="signup-link">Sign Up</Link></div></section>
-    <nav className="sidebar-nav" aria-label="Main navigation">{primary.map(({label,to,Icon}) => <Link key={label} to={to} className={location.pathname === to || (label === "Browse" && location.pathname.startsWith("/course/")) ? "sidebar-nav-item active" : "sidebar-nav-item"} aria-current={location.pathname === to ? "page" : undefined}><span className={"side-icon side-" + label.toLowerCase()}><Icon size={19}/></span>{label}</Link>)}</nav>
+    <nav className="sidebar-nav" aria-label="Main navigation">{primary.map(({label,to,Icon}) => <Link key={label} to={to} className={location.pathname === to || (label === "Home" && location.pathname === "/") || (label === "Browse" && (location.pathname.startsWith("/course/") || location.pathname === "/browse")) || (label === "Dashboard" && ["/courses", "/profile"].includes(location.pathname)) ? "sidebar-nav-item active" : "sidebar-nav-item"} aria-current={(location.pathname === to || (label === "Home" && location.pathname === "/")) ? "page" : undefined}><span className={"side-icon side-" + label.toLowerCase()}><Icon size={19}/></span>{label}</Link>)}</nav>
     <section className="sidebar-more"><div className="sidebar-brand"><Logo/></div><Link to="/menu"><span className="side-icon side-promote"><Star size={17}/></span>Promote<ChevronRight size={14}/></Link><Link to="/download-app"><span className="side-icon side-download"><Download size={17}/></span>Download App<ChevronRight size={14}/></Link></section>
   </aside>;
 }
@@ -49,7 +49,7 @@ function MobileBottomNav() {
     { id: "nav-courses", label: "Courses", to: "/browse", Icon: Grid2X2 },
     { id: "nav-profile", label: "Profile", to: "/profile", Icon: UserRound },
   ];
-  return <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{items.map(({id,label,to,Icon}) => <Link key={id} id={id} to={to} aria-current={location.pathname === to ? "page" : undefined} className={location.pathname === to ? "mobile-bottom-item selected" : "mobile-bottom-item"}><Icon size={19}/><span>{label}</span></Link>)}</nav>;
+  return <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{items.map(({id,label,to,Icon}) => <Link key={id} id={id} to={to} aria-current={(location.pathname === to || (label === "Home" && location.pathname === "/") || (label === "Courses" && location.pathname.startsWith("/course/"))) ? "page" : undefined} className={(location.pathname === to || (label === "Home" && location.pathname === "/") || (label === "Courses" && location.pathname.startsWith("/course/"))) ? "mobile-bottom-item selected" : "mobile-bottom-item"}><Icon size={19}/><span>{label}</span></Link>)}</nav>;
 }
 export default function AppShell({ children }) {
   return <div className="app-shell"><LeftSidebar/><div className="main-column">{children}</div><RightSidebar/><MobileBottomNav/></div>;

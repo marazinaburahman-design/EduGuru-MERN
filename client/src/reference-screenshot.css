@@ -98,3 +98,33 @@
 /* Course-card brand strip and non-fabricated compare-at pricing. */
 .course-brand-strip{height:29px;display:flex;align-items:center;gap:5px;padding:3px 7px;background:#fff;color:#6f1ac8;flex:none;overflow:hidden}.course-brand-mark{width:22px;height:22px;display:grid;place-items:center;flex:none;border-radius:6px;background:linear-gradient(135deg,#7117d5,#a44bf1);color:#fff}.course-brand-strip>b{font-size:12px;line-height:1;font-weight:900;letter-spacing:-.3px;white-space:nowrap}.reference-course-card .course-art{height:75px}.reference-course-card .course-content{gap:7px}.reference-course-card .course-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px}.reference-course-card .course-original-price{font-size:8px;color:#9b94a8;text-decoration:line-through;white-space:nowrap}.reference-course-card .course-meta strong{font-size:11px}.reference-course-card .discount-tag{left:0;right:auto;top:0;border-radius:0 0 9px 0;padding:4px 6px}
 @media(max-width:600px){.reference-course-card .course-brand-strip{height:28px;padding:3px 6px}.reference-course-card .course-brand-strip>b{font-size:11px}.reference-course-card .course-art{height:78px}.reference-course-card .course-content{padding:9px 8px 10px;gap:7px}.reference-course-card .course-content h3{font-size:11px;min-height:27px}.reference-course-card .course-meta strong{font-size:11px}}
+
+/* Remaining screenshot parity: shared shell, menu, profile, course details and learning screens */
+.app-shell{align-items:start;max-width:1440px;margin:0 auto}
+.left-sidebar,.right-sidebar{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;scrollbar-width:thin;scrollbar-color:#e7d7fb transparent}
+.sidebar-welcome{border:1px solid #ead8ff!important;border-radius:18px!important;background:linear-gradient(150deg,#fff,#faf5ff)!important;box-shadow:0 7px 20px #49117b0a}
+.sidebar-welcome .welcome-icon{background:linear-gradient(135deg,#7715d6,#a347f1)!important;color:#fff!important;border-radius:13px!important}
+.sidebar-welcome strong{color:#26103e!important;font-weight:900!important}.sidebar-welcome p{color:#89809b!important}
+.sidebar-welcome>div a{border-radius:10px!important;font-weight:900!important}.sidebar-welcome>div .signup-link{background:linear-gradient(110deg,#6d16c9,#9f43ec)!important;color:#fff!important}
+.sidebar-nav-item{border-radius:13px!important;transition:background .18s ease,transform .18s ease}.sidebar-nav-item:hover{transform:translateX(2px);background:#f7efff!important}
+.sidebar-nav-item.active{background:#f0e3ff!important;color:#6815c4!important;font-weight:900!important}.sidebar-nav-item.active .side-icon{background:linear-gradient(135deg,#7216d0,#a64df2)!important;color:#fff!important}
+.sidebar-more{border:1px solid #eadbff!important;border-radius:16px!important;background:#fff!important;overflow:hidden}.sidebar-more>a{padding:10px 12px!important;border-top:1px solid #f2e9fb!important}.sidebar-more>a>svg:last-child{margin-left:auto;color:#b4a2cc}
+.wallet-card{border:1px solid #e8d6ff!important;box-shadow:0 6px 18px #5011840c!important}.right-section-label{font-size:9px!important;letter-spacing:1.1px!important;font-weight:900!important;color:#8b70ab!important}
+.quick-tile,.more-grid>a{transition:transform .18s ease,box-shadow .18s ease}.quick-tile:hover,.more-grid>a:hover{transform:translateY(-2px);box-shadow:0 9px 18px #34124d26}
+.menu-page{padding:0 16px 28px!important}.menu-hero{position:relative;overflow:hidden;border-radius:0 0 22px 22px!important;background:linear-gradient(115deg,#4b06a5,#7924df 62%,#9852f7)!important;color:#fff!important}.menu-hero h1,.menu-hero h2{color:#fff!important}
+.menu-section,.menu-panel,.menu-card{border-radius:18px!important;border:1px solid #eee2fb!important;box-shadow:0 5px 16px #4d16770a}.menu-grid,.menu-quick-grid{gap:10px!important}
+.menu-item,.menu-link-card{border-radius:14px!important;transition:transform .16s ease,background .16s ease}.menu-item:hover,.menu-link-card:hover{transform:translateY(-2px);background:#faf5ff}
+.module-page{padding-bottom:30px}.module-hero{min-height:160px!important}.module-hero-copy h1{letter-spacing:-.6px}
+.module-intro-panel,.story-card,.policy-summary,.policy-section,.contact-form-card,.download-panel,.support-note,.help-card,.resource-card{box-shadow:0 7px 24px #3b145b0b}
+.story-card,.policy-section,.help-card,.resource-card{transition:transform .18s ease,box-shadow .18s ease}.story-card:hover,.help-card:hover,.resource-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px #3b145b12}
+.contact-form-card input:focus,.contact-form-card textarea:focus,.auth-card input:focus,.auth-card textarea:focus,.auth-card select:focus{outline:3px solid #8b38e52b;border-color:#9c55e7!important}
+.contact-form-card label,.auth-card label{font-weight:800}.contact-form-card input,.contact-form-card textarea{width:100%;box-sizing:border-box}
+.download-reference-actions button:disabled{opacity:.72;cursor:not-allowed}
+.profile-page,.detail-page,.lesson-page,.admin-page{max-width:100%;box-sizing:border-box}.detail-page .course-art,.detail-page .detail-cover{border-radius:18px;overflow:hidden}
+.detail-page .enroll-card{border:1px solid #eadbfb;border-radius:18px;box-shadow:0 8px 22px #4a14770b}.profile-page .auth-card,.admin-page .auth-card,.lesson-page .lesson-content{border:1px solid #eadbfb;border-radius:18px;box-shadow:0 8px 22px #4a14770b}
+.admin-page form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.admin-page form label{display:flex;flex-direction:column;gap:6px}.admin-page form label:has(textarea){grid-column:1/-1}
+.admin-page form input,.admin-page form textarea,.admin-page form select{width:100%;box-sizing:border-box}.admin-page form button{justify-self:start}
+.empty-state{min-height:45vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;color:#77638f}
+:focus-visible{outline:3px solid #9a53e8!important;outline-offset:2px}
+@media(max-width:850px){.left-sidebar{position:static;max-height:none}.app-shell{align-items:stretch}}
+@media(max-width:600px){.admin-page form{grid-template-columns:minmax(0,1fr)}.admin-page form label:has(textarea){grid-column:auto}.module-page{padding-bottom:22px}.module-hero{min-height:140px!important}.contact-layout{gap:16px!important}.contact-form-card{padding:20px!important}.story-grid{gap:12px!important}.policy-layout{gap:14px!important}.download-panel{margin:14px!important}.menu-page{padding:0 10px 24px!important}.mobile-bottom-nav{z-index:50}}
