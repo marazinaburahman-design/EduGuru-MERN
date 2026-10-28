@@ -93,3 +93,8 @@
 .policy-symbol{height:28px;width:28px;border-radius:9px;display:grid;place-items:center;color:white;background:#818bff}
 .policy-symbol.privacy{background:#ed4da0}
 @media(max-width:850px){.right-policy-links{display:none}}
+
+
+/* Course-card brand strip and non-fabricated compare-at pricing. */
+.course-brand-strip{height:29px;display:flex;align-items:center;gap:5px;padding:3px 7px;background:#fff;color:#6f1ac8;flex:none;overflow:hidden}.course-brand-mark{width:22px;height:22px;display:grid;place-items:center;flex:none;border-radius:6px;background:linear-gradient(135deg,#7117d5,#a44bf1);color:#fff}.course-brand-strip>b{font-size:12px;line-height:1;font-weight:900;letter-spacing:-.3px;white-space:nowrap}.reference-course-card .course-art{height:75px}.reference-course-card .course-content{gap:7px}.reference-course-card .course-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px}.reference-course-card .course-original-price{font-size:8px;color:#9b94a8;text-decoration:line-through;white-space:nowrap}.reference-course-card .course-meta strong{font-size:11px}.reference-course-card .discount-tag{left:0;right:auto;top:0;border-radius:0 0 9px 0;padding:4px 6px}
+@media(max-width:600px){.reference-course-card .course-brand-strip{height:28px;padding:3px 6px}.reference-course-card .course-brand-strip>b{font-size:11px}.reference-course-card .course-art{height:78px}.reference-course-card .course-content{padding:9px 8px 10px;gap:7px}.reference-course-card .course-content h3{font-size:11px;min-height:27px}.reference-course-card .course-meta strong{font-size:11px}}
